@@ -1,0 +1,4 @@
+import WeightedErdosSzekeres.Defs
+import WeightedErdosSzekeres.Squares
+import WeightedErdosSzekeres.Area
+import WeightedErdosSzekeres.Main
