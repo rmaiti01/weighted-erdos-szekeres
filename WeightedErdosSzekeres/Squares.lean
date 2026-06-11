@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Rajarshi. All rights reserved.
+Copyright (c) 2026 Rajarshi Maiti. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rajarshi
+Authors: Rajarshi Maiti
 -/
 import WeightedErdosSzekeres.Defs
 
@@ -56,7 +56,7 @@ private lemma square_disjoint_of_lt {v : Fin n → β} {w : Fin n → ℝ} {i j 
   rw [Set.disjoint_left]
   rintro ⟨p₁, p₂⟩ hp hq
   simp only [square, Set.mem_prod, Set.mem_Ioc] at hp hq
-  rcases (hv.ne hij.ne).lt_or_lt with hvij | hvji
+  rcases (hv.ne hij.ne).lt_or_gt with hvij | hvji
   · -- `v i < v j`: the first coordinates cannot coexist.
     have h := incSumTo_add_le w hij hvij
     linarith [hp.1.2, hq.1.1]
@@ -69,7 +69,7 @@ lemma pairwiseDisjoint_square (v : Fin n → β) (w : Fin n → ℝ)
     (hv : Function.Injective v) :
     Set.PairwiseDisjoint (↑(univ : Finset (Fin n))) (square v w) := by
   intro i _ j _ hne
-  rcases hne.lt_or_lt with hij | hji
+  rcases hne.lt_or_gt with hij | hji
   · exact square_disjoint_of_lt hv hij
   · exact (square_disjoint_of_lt hv hji).symm
 

@@ -36,11 +36,43 @@ lemma, a normal-form mismatch, or an API gap; naming which is the point.
   `(image ?f s).max' ⋯ =?= maxMonoSum v w`, which means unfolding a `def`
   *and* solving for the function `?f` under an `image` — a higher-order
   unification problem the elaborator (correctly) refuses to guess.
-- **Fix:** `unfold maxMonoSum` first, so `?f` is determined syntactically,
-  then the same `exact` succeeds. General lesson: definitions wrapping
+- **Fix (two stages — the first recorded fix was incomplete):**
+  `unfold maxMonoSum` first, so the goal-side unification is syntactic. On a
+  cold `lake build` that is still not enough: with `mem_image_of_mem _ ht`
+  the image *function* is a metavariable, so the elaborator parks
+  `DecidableEq ?m` (the instance `Finset.image` needs) and reports
+  "typeclass instance problem is stuck". The complete fix supplies the
+  function explicitly: `mem_image_of_mem (fun t => ∑ i ∈ t, w i) ht`.
+  Caught during pre-publication review when the first verified-clean cold
+  build was run — the original in-editor session had accepted the
+  underdetermined form. General lesson: definitions wrapping
   `Finset.max'`/`image` should ship their own `le_*` API lemma immediately,
   precisely so no caller ever faces this unification problem — which is what
   `Defs.lean` does.
+
+---
+
+## E1. Lake/Lean/git block indefinitely on iCloud-evicted (`dataless`) trees **[environment]**
+
+- **Symptom:** `lake build` sat at 0% CPU for 15+ minutes with no `lean`
+  workers; independently, `git status`/`git diff HEAD` inside
+  `.lake/packages/mathlib` hung the same way. An earlier full build appeared
+  to "hang ~50 minutes in elaboration".
+- **Diagnosis:** `sample` showed Lake parked in `Lake_PackageEntry_materialize`
+  waiting on a spawned `git diff HEAD`; `lsof` showed that git blocked reading
+  a workflow file; `ls -lO` showed the *entire* Mathlib package carries the
+  macOS `dataless` flag. The repository lives under `~/Desktop`, which iCloud
+  "Desktop & Documents" sync had evicted wholesale. Any `read`/`stat` of an
+  evicted file traps into the file provider and blocks until iCloud
+  rematerializes it — for Mathlib that is hundreds of thousands of files, so
+  builds and whole-tree git operations stall at 0% CPU with no error message.
+- **Root cause:** not Lean, Lake, or Mathlib — the build directory is inside
+  an iCloud-synced path. The failure mode is invisible (kernel-level block,
+  no timeout, no log line), which is what makes it atlas-worthy: it
+  masquerades as "slow elaboration".
+- **Fix:** keep Lean checkouts outside iCloud-synced paths (or
+  `brctl download <dir>` / `brctl evict`-exempt them). For this review the
+  canonical verification build was done from a fresh clone under `/tmp`.
 
 ---
 

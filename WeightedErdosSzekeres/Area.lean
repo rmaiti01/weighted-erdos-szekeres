@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Rajarshi. All rights reserved.
+Copyright (c) 2026 Rajarshi Maiti. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rajarshi
+Authors: Rajarshi Maiti
 -/
 import WeightedErdosSzekeres.Squares
 
@@ -30,7 +30,7 @@ variable {n : ℕ} {β : Type*} [LinearOrder β]
 lemma volume_square (v : Fin n → β) (w : Fin n → ℝ) (i : Fin n) :
     volume (square v w i) = ENNReal.ofReal (w i) * ENNReal.ofReal (w i) := by
   rw [square, Measure.volume_eq_prod, Measure.prod_prod, Real.volume_Ioc,
-    Real.volume_Ioc, sub_sub_cancel]
+    Real.volume_Ioc, sub_sub_cancel, sub_sub_cancel]
 
 /-- **Weighted Erdős–Szekeres, ℓ² form.** For an injective order map `v` and
 positive weights `w`, the best monotone subsequence weight `S = maxMonoSum v w`

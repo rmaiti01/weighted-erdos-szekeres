@@ -55,8 +55,13 @@ Per Alexeev's follow-up comment, this argument appears in Section 3 of Tidor–W
   `theorem Theorems100.erdos_szekeres {r s : ℕ} {f : α → β} (hn : r * s < Fintype.card α) (hf : Injective f) : (∃ t : Finset α, r < #t ∧ StrictMonoOn f t) ∨ ∃ t : Finset α, s < #t ∧ StrictAntiOn f t`
 - Mathlib has **no weighted Erdős–Szekeres** and **no tightness construction** (a sequence of r·s distinct values with no increasing subsequence longer than r nor decreasing longer than s).
 
-## Raw captures
+## Raw captures (untracked)
+
+Full-text captures are kept as **untracked local working copies only** — none
+of the three carries a license permitting redistribution, so none is vendored
+in this repository (see `.gitignore`). What the repo distributes is this
+dossier: short, attributed verbatim excerpts plus the links above.
 
 - `forum_thread_raw.txt` — text dump of the forum thread (retrieved 2026-06-10)
 - `tao_post_raw.txt` — text dump of Tao's blog post (retrieved 2026-06-10)
-- `aristotle_erdos1026.lean` — untracked local copy of Aristotle's proof (pinned URL above)
+- `aristotle_erdos1026.lean` — local copy of Aristotle's proof (pinned URL above)

@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Rajarshi. All rights reserved.
+Copyright (c) 2026 Rajarshi Maiti. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rajarshi
+Authors: Rajarshi Maiti
 -/
 import Mathlib
 
@@ -89,7 +89,7 @@ lemma sum_le_maxMonoSum {v : Fin n → β} {w : Fin n → ℝ} {t : Finset (Fin 
     (ht : IsMonoSubseq v t) :
     ∑ i ∈ t, w i ≤ maxMonoSum v w := by
   unfold maxMonoSum
-  exact le_max' _ _ <| mem_image_of_mem _ <| mem_monoSubseqs.2 ht
+  exact le_max' _ _ <| mem_image_of_mem (fun t => ∑ i ∈ t, w i) <| mem_monoSubseqs.2 ht
 
 /-- The maximum is attained. -/
 lemma exists_maxMonoSum (v : Fin n → β) (w : Fin n → ℝ) :
@@ -134,7 +134,7 @@ lemma le_incSumTo {v : Fin n → β} (w : Fin n → ℝ) {i : Fin n} {t : Finset
     (ht : t ∈ incSetsTo v i) :
     ∑ j ∈ t, w j ≤ incSumTo v w i := by
   unfold incSumTo
-  exact le_max' _ _ <| mem_image_of_mem _ ht
+  exact le_max' _ _ <| mem_image_of_mem (fun t => ∑ j ∈ t, w j) ht
 
 lemma exists_incSumTo (v : Fin n → β) (w : Fin n → ℝ) (i : Fin n) :
     ∃ t ∈ incSetsTo v i, ∑ j ∈ t, w j = incSumTo v w i := by
@@ -203,10 +203,16 @@ lemma incSumTo_le_maxMonoSum_of {u : Fin n → β} {γ : Type*} [LinearOrder γ]
   obtain ⟨t, ht, hsum⟩ := exists_incSumTo u w i
   exact hsum ▸ sum_le_maxMonoSum (h t ht)
 
+/-- The best increasing weight ending at `i` is at most the best monotone
+weight overall. -/
 lemma incSumTo_le_maxMonoSum (v : Fin n → β) (w : Fin n → ℝ) (i : Fin n) :
     incSumTo v w i ≤ maxMonoSum v w :=
   incSumTo_le_maxMonoSum_of w fun _ ht => Or.inl (mem_incSetsTo.1 ht).2
 
+/-- The best *decreasing* weight ending at `i` — spelled, as everywhere in
+this development, as the increasing weight for `⇑toDual ∘ v` (there is no
+separate `decSumTo` definition) — is at most the best monotone weight for
+`v` itself. -/
 lemma decSumTo_le_maxMonoSum (v : Fin n → β) (w : Fin n → ℝ) (i : Fin n) :
     incSumTo (⇑toDual ∘ v) w i ≤ maxMonoSum v w :=
   incSumTo_le_maxMonoSum_of w fun _ ht =>

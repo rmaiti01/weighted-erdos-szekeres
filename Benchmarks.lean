@@ -1,0 +1,2 @@
+import Benchmarks.A1_StrictMonoOnEmptyCoe
+import Benchmarks.A2_LeMaxThroughDef

@@ -148,9 +148,11 @@ The entire informal proof is four sentences. Each is quoted, then billed.
 - **B5 (finish).** $\max_i S_i \le S$ and $\max_i T_i \le T \le S$ (every
   increasing-ending-at-$i$ subsequence is monotone), so
   $S^2 \ge (\max_i S_i)(\max_i T_i) \ge \sum_i x_i^2$ — the ℓ² form; then
-  Cauchy–Schwarz $(\sum x_i)^2 \le n \sum x_i^2$ (a named Mathlib lemma — finding
-  its name is a benchmark task in the failure atlas) and G7's maximizer API as in
-  Proof A.
+  Cauchy–Schwarz $(\sum x_i)^2 \le n \sum x_i^2$ (the Mathlib lemma is
+  `Finset.sum_mul_sq_le_sq_mul_sq` — no "Cauchy" or "Schwarz" in the name;
+  `exact?` does retrieve it, but only once the goal is already massaged into
+  the lemma's exact `(∑ f·g)² ≤ (∑ f²)(∑ g²)` shape) and G7's maximizer API
+  as in Proof A.
 
 ## 4. Formalizability assessment
 
@@ -163,9 +165,11 @@ The entire informal proof is four sentences. Each is quoted, then billed.
 | Delicate constructions | perturbation scheme with three simultaneous constraints (G1) | none |
 | Estimated size | ~3–4× Proof B | baseline |
 
-**Decision: formalize Proof B as the main development; formalize Proof A's
-costliest hidden substructure — the tightness construction (G2) — as a standalone
-stretch module.** Proof B is finite, construction-free, and its only expensive step
+**Decision: formalize Proof B as the main development.** Proof A's costliest
+hidden substructure — the tightness construction (G2) — is *not* formalized
+here; it is recorded in §6 as the sharpest library gap this analysis surfaced,
+and is the natural standalone follow-up (PR-able to Mathlib independently of
+this development). Proof B is finite, construction-free, and its only expensive step
 (B4) is expensive in a *library-supported* way. Proof A is the better story but the
 worse engineering: three of its four sentences each conceal a lemma, and one
 conceals a missing library file.
@@ -180,7 +184,7 @@ human-readable scale.
 
 Within two hours of Cambie's conjecture being posted, a natural strengthening was
 proposed (Kovač): *the monotone subsequence can be taken to have length $k$ as
-well.* Cambie refuted it the same morning: normalize
+well.* Cambie refuted it within three hours: normalize
 $k\binom{n}{2}, 1, 2, \dots, n-1$ (dividing by $(k+1)\binom n2$, $n = k^2$,
 $k \ge 3$); any subsequence avoiding the huge first term has sum $< 1/k$, while any
 monotone subsequence containing it has length $\le 2$. The lesson is the same one
@@ -190,8 +194,9 @@ kind of sentence they are reading.
 
 ## 6. Library gaps surfaced by this analysis
 
-1. **Erdős–Szekeres tightness** is absent from Mathlib (G2) — formalized here as
-   the stretch module; PR-able.
+1. **Erdős–Szekeres tightness** is absent from Mathlib (G2). Not formalized
+   here (this development follows Proof B, which does not need it); it is the
+   sharpest gap on this list and PR-able to Mathlib independently.
 2. **Erdős–Szekeres lives in `Archive/`**, not Mathlib proper, with `private`
    scaffolding (`incSequencesTo` etc.) that cannot be reused downstream even
    though Proof B is its weighted shadow (B1). The weighted generalization

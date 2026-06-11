@@ -10,5 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # lean-action reads the toolchain from `lean-toolchain`, fetches the
+      # Mathlib binary cache, and runs `lake build` (the default target).
+      # Building the default target re-checks the `#guard_msgs` axiom audits
+      # at the bottom of WeightedErdosSzekeres/Main.lean, so the audit is
+      # enforced on every push, not decorative.
       - name: Build the Lean project (with Mathlib cache)
         uses: leanprover/lean-action@v1
+      - name: Forbid sorry/admit in the main development
+        run: |
+          if grep -rnE '\bsorry\b|\badmit\b' WeightedErdosSzekeres/ WeightedErdosSzekeres.lean; then
+            echo "Found a hole in the main development." >&2
+            exit 1
+          fi
+      # The benchmark eval targets contain intentional `sorry`s (see README);
+      # they are excluded from the default target. This step only checks that
+      # they still elaborate against the pinned toolchain.
+      - name: Build the benchmark eval targets (intentional sorries)
+        run: lake build Benchmarks

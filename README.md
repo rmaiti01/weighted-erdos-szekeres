@@ -1,6 +1,26 @@
 # Weighted Erdős–Szekeres, by hand
 ### Erdős problem #1026, formalized the way a human would write it — with a referee's report on the informal proofs and a failure atlas for the automation
 
+[![CI](https://github.com/rmaiti01/weighted-erdos-szekeres/actions/workflows/ci.yml/badge.svg)](https://github.com/rmaiti01/weighted-erdos-szekeres/actions/workflows/ci.yml)
+
+## Verify in 10 minutes
+
+```
+lake exe cache get   # fetch the Mathlib binary cache
+lake build           # must end "Build completed successfully"
+grep -rnE '\bsorry\b|\badmit\b' WeightedErdosSzekeres/   # no output = no holes
+```
+
+- `lake build` re-checks the `#guard_msgs` **axiom audits** at the bottom of
+  [Main.lean](WeightedErdosSzekeres/Main.lean): each headline theorem depends
+  on exactly `propext, Classical.choice, Quot.sound`.
+- The same file ends with a **satisfiability witness** — explicit data
+  realizing every hypothesis of `erdos1026` — so the theorem is not
+  vacuously true.
+- Whether the Lean statement *says what the conjecture says* is the one thing
+  the machine cannot check: the clause-by-clause reading is
+  [INFORMAL.md §1](INFORMAL.md#1-the-statement).
+
 In December 2025, [Erdős problem #1026](https://www.erdosproblems.com/1026)
 ([Tao's account](https://terrytao.wordpress.com/2025/12/08/the-story-of-erdos-problem-126/))
 was resolved twice in one hour: first autonomously in Lean by the AI prover
@@ -45,7 +65,9 @@ survive into a clean final proof script:
    Erdős–Szekeres tightness construction; its Erdős–Szekeres lives in
    `Archive/` with `private` scaffolding that cannot be reused). Hard subgoals
    are extracted to [Benchmarks/](Benchmarks/) as a standalone mini eval set
-   for tactics and provers.
+   for tactics and provers. Benchmark files contain **intentional `sorry`s**
+   (they are the eval targets); they are excluded from the default build —
+   run `lake build Benchmarks` to elaborate them.
 
 ## The headline theorem
 
@@ -59,8 +81,10 @@ theorem sum_sq_le_sq_maxMonoSum (v : Fin n → β) (w : Fin n → ℝ)
 ```
 
 With `v = w = x` this is Erdős #1026 (`WeightedES.erdos1026`); with `w ≡ 1`
-it is classical Erdős–Szekeres (`WeightedES.exists_monoSubseq_sq_card_ge`) —
-one geometric argument, both theorems.
+it is the symmetric form of classical Erdős–Szekeres — among `n` distinct
+values, a monotone subsequence of length at least `√n`
+(`WeightedES.exists_monoSubseq_sq_card_ge`) — one geometric argument, both
+theorems.
 
 ## Reproducing
 
@@ -73,9 +97,10 @@ Pinned: Lean `v4.29.0`, Mathlib `v4.29.0`. CI builds every push.
 
 ## Provenance
 
-All informal sources are quoted and linked in
-[sources/SOURCES.md](sources/SOURCES.md). Aristotle's machine proof is
-referenced by pinned URL (its repository declares no license, so the file is
-not vendored). This development is independent of it: same theorem, same
-geometric idea, different codebase — that is what makes the line-count
-comparison meaningful.
+All informal sources are quoted (short, attributed excerpts) and linked in
+[sources/SOURCES.md](sources/SOURCES.md). Nothing without a redistribution
+license is vendored: Aristotle's machine proof is referenced by pinned URL
+only (its repository declares no license), and the full-text captures of the
+forum thread and Tao's post are untracked local working copies. This
+development is independent of Aristotle's: same theorem, same geometric idea,
+different codebase — that is what makes the line-count comparison meaningful.

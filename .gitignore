@@ -1,3 +1,5 @@
 .lake/
 sources/aristotle_erdos1026.lean
 .claude/
+sources/tao_post_raw.txt
+sources/forum_thread_raw.txt

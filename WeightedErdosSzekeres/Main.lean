@@ -1,19 +1,23 @@
 /-
-Copyright (c) 2026 Rajarshi. All rights reserved.
+Copyright (c) 2026 Rajarshi Maiti. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rajarshi
+Authors: Rajarshi Maiti
 -/
 import WeightedErdosSzekeres.Area
 
 /-!
 # Main results
 
-* `WeightedES.erdos1026` — **Erdős problem #1026** in Cambie's form: distinct
-  positive reals `x₁, …, x_{k²}` summing to `1` admit a monotone subsequence
-  of sum at least `1/k`. Cauchy–Schwarz applied to the ℓ² form.
-* `WeightedES.exists_monoSubseq_sq_card_ge` — classical Erdős–Szekeres
-  recovered from the same ℓ² form by taking unit weights: among `n` distinct
-  values some monotone subsequence `t` has `n ≤ #t ^ 2`.
+* `WeightedES.erdos1026` — **Erdős problem #1026** in Cambie's form: among
+  distinct positive reals `x₁, …, x_{k²}` summing to `1` some monotone
+  subsequence has sum at least `1/k`. Cauchy–Schwarz applied to the ℓ² form.
+* `WeightedES.exists_monoSubseq_sq_card_ge` — the symmetric form of classical
+  Erdős–Szekeres, recovered from the same ℓ² form by taking unit weights:
+  among `n` distinct values some monotone subsequence `t` has `n ≤ #t ^ 2`.
+
+The file ends with a satisfiability witness (the hypotheses of `erdos1026`
+are jointly realizable, so the theorem is not vacuous) and `#guard_msgs`
+axiom audits pinning every headline result to the three standard axioms.
 -/
 
 open Finset
@@ -41,7 +45,8 @@ theorem erdos1026 {k : ℕ} (hk : 0 < k) (x : Fin (k ^ 2) → ℝ)
       _ ≤ (∑ i, x i ^ 2) * ∑ _i : Fin (k ^ 2), (1 : ℝ) ^ 2 :=
           Finset.sum_mul_sq_le_sq_mul_sq univ x fun _ => (1 : ℝ)
       _ = (k : ℝ) ^ 2 * ∑ i, x i ^ 2 := by
-          simp [Finset.card_univ, mul_comm]
+          simp only [one_pow, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+            nsmul_eq_mul, mul_one]
           push_cast
           ring
   -- The ℓ² bound: ∑ xᵢ² ≤ S².
@@ -55,9 +60,11 @@ theorem erdos1026 {k : ℕ} (hk : 0 < k) (x : Fin (k ^ 2) → ℝ)
       _ = (S * k) ^ 2 := by ring
   nlinarith [hsq, hSk]
 
-/-- Classical **Erdős–Szekeres**, recovered from the weighted theorem with
-unit weights: among `n` distinct values, some monotone subsequence `t` has
-`n ≤ #t ^ 2` — i.e. a monotone subsequence of length at least `√n`. -/
+/-- Classical **Erdős–Szekeres** (symmetric form), recovered from the
+weighted theorem with unit weights: among `n` distinct values, some monotone
+subsequence `t` has `n ≤ #t ^ 2` — i.e. a monotone subsequence of length at
+least `√n`. (The asymmetric `r`/`s` form is *not* claimed here: bounding both
+ending-at-`i` quantities by `maxMonoSum` symmetrizes the rectangle.) -/
 theorem exists_monoSubseq_sq_card_ge (v : Fin n → β) (hv : Function.Injective v) :
     ∃ t : Finset (Fin n), (StrictMonoOn v ↑t ∨ StrictAntiOn v ↑t) ∧ n ≤ #t ^ 2 := by
   obtain ⟨t, ht, hts⟩ := exists_maxMonoSum v fun _ => (1 : ℝ)
@@ -66,5 +73,44 @@ theorem exists_monoSubseq_sq_card_ge (v : Fin n → β) (hv : Function.Injective
   rw [← hts] at hl2
   have : (n : ℝ) ≤ (#t : ℝ) ^ 2 := by simpa using hl2
   exact_mod_cast this
+
+/-! ### Satisfiability witness
+
+A vacuously true theorem would survive `lake build`; this example is the
+defense. It instantiates every hypothesis of `erdos1026` at `k = 2` with four
+explicit distinct positive reals summing to `1`, so the hypotheses are jointly
+realizable and the theorem has nonvacuous content. -/
+
+example :
+    ∃ t : Finset (Fin (2 ^ 2)),
+      (StrictMonoOn ![(1 : ℝ)/10, 2/10, 3/10, 4/10] ↑t ∨
+        StrictAntiOn ![(1 : ℝ)/10, 2/10, 3/10, 4/10] ↑t) ∧
+      (1 : ℝ) / 2 ≤ ∑ i ∈ t, ![(1 : ℝ)/10, 2/10, 3/10, 4/10] i :=
+  erdos1026 two_pos ![(1 : ℝ)/10, 2/10, 3/10, 4/10]
+    (by intro i j hij; fin_cases i <;> fin_cases j <;> revert hij <;> norm_num)
+    (by intro i; fin_cases i <;> norm_num)
+    (by show (∑ i : Fin 4, _) = 1
+        rw [Fin.sum_univ_four]
+        show (1 : ℝ)/10 + 2/10 + 3/10 + 4/10 = 1
+        norm_num)
+
+/-! ### Axiom audits
+
+Each headline result depends on exactly the three standard axioms
+(`propext`, `Classical.choice`, `Quot.sound`) — no `sorry`, no extra axioms.
+CI rebuilds this file, so these `#guard_msgs` checks are enforced on every
+push. -/
+
+/-- info: 'WeightedES.sum_sq_le_sq_maxMonoSum' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms sum_sq_le_sq_maxMonoSum
+
+/-- info: 'WeightedES.erdos1026' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms erdos1026
+
+/-- info: 'WeightedES.exists_monoSubseq_sq_card_ge' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms exists_monoSubseq_sq_card_ge
 
 end WeightedES
