@@ -8,8 +8,8 @@ evidence; every claim below is checkable from a clean clone in ~10 minutes
 ## The deliverable class
 
 In December 2025, an AI prover resolved [Erdős problem #1026](https://www.erdosproblems.com/1026)
-in **3,658 machine-generated Lean lines**. A human then proved it in four
-sentences on a forum. This repository is the third object in that triangle: the
+in **3,658 machine-generated Lean lines**. A human then proved it in six
+short sentences on a forum. This repository is the third object in that triangle: the
 same theorem at **485 readable lines**, produced *as an audit* — with the
 referee report, the failure data, and the extracted benchmarks that the clean
 final proof script normally swallows.
@@ -18,7 +18,7 @@ That audit layer — not the formalization — is the product:
 
 | Artifact | File | What a lab gets from it |
 |---|---|---|
-| Gap-priced referee report of both informal proofs | [INFORMAL.md](INFORMAL.md) | 12 annotated gaps (G1–G7, B1–B5): every hidden assumption and unstated lemma, each priced in formalization cost. The punchline generalizes: *the step the informal text spends the fewest words on is the most expensive one.* |
+| Gap-priced referee report of both informal proofs | [INFORMAL.md](INFORMAL.md) | 13 annotated gaps (G1–G7; B1–B5 with B2 split into B2a/B2b): every hidden assumption and unstated lemma, each priced in formalization cost. The punchline generalizes: *the step the informal text spends the fewest words on is the most expensive one.* |
 | Formalizability assessment | [INFORMAL.md §4](INFORMAL.md#4-formalizability-assessment) | A cost model that predicted one proof at ~3–4× the other **before** writing Lean — the decision document a formalization effort needs on day zero. |
 | Root-caused failure atlas | [FAILURE_ATLAS.md](FAILURE_ATLAS.md) | Each automation failure classified to an articulable cause: simp-normal-form mismatch, higher-order unification limit, missing library lemma. Failure *with a root cause* is training signal; failure without one is noise. |
 | Extracted benchmarks | [Benchmarks/](Benchmarks/) | Hard subgoals as standalone eval targets with intentional `sorry`s — a mini eval set for tactics and provers, derived from real failures rather than synthesized. |
