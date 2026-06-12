@@ -34,12 +34,12 @@ $$S^2 \;\ge\; \sum_{i=1}^n x_i^2 .$$
 | "sequence $x_1,\dots,x_n$" | `x : Fin n → ℝ` with `Function.Injective x` | matches Mathlib's Erdős–Szekeres idiom (`Archive/Wiedijk100Theorems/AscendingDescendingSequences.lean`), which quantifies over `Finset` index sets |
 | "monotonic subsequence" | `t : Finset (Fin n)` with `StrictMonoOn x ↑t ∨ StrictAntiOn x ↑t` | a subsequence is an index *set* (order inherited from `Fin n`); strictness is free since values are distinct |
 | "max over all monotonic subsequences" | `Finset.max'` over the (nonempty) filtered powerset | the empty set is vacuously monotone, so the family is nonempty without case analysis; under positivity it never attains the max, so including it is harmless and kills a side condition |
-| "distinct" | `Function.Injective x` | the standing hypothesis both proofs silently rely on (Proof A: ES needs injectivity; Proof B: not actually needed! — see §3, a fact invisible informally) |
+| "distinct" | `Function.Injective x` | the standing hypothesis both proofs silently rely on (Proof A: ES needs injectivity; Proof B: needed only for the *strict*-monotone rendering used here — rephrased with weak monotonicity the argument needs no distinctness at all, see §3 B2b; with strict monotonicity and repeated values the ℓ² bound is simply false) |
 | "positive" | `∀ i, 0 < x i` | see G6/B3: both proofs use positivity in steps that never mention it |
 
 ## 2. Proof A — Chan's blow-up argument, annotated
 
-The entire informal proof is four sentences. Each is quoted, then billed.
+The entire informal proof is six short sentences, quoted below in its four steps; each step is billed.
 
 > **(A1)** "Set $n = k^2$. Take large $N$, and replace each $x_i$ with
 > $\lfloor N^2 x_i^2 \rfloor$ perturbations of $x_i$, …"
@@ -51,7 +51,9 @@ The entire informal proof is four sentences. Each is quoted, then billed.
   are exactly the order relations of the original values — this needs
   $\delta < \tfrac12 \min_{i\ne j}|x_i - x_j|$, and the minimum gap is positive
   only because finitely many distinct reals have one (a compactness-flavored fact
-  that is a real lemma in Lean); (iii) positivity must be preserved.
+  that is a real lemma in Lean); (iii) positivity of the perturbed values is *not* actually needed — unweighted
+  Erdős–Szekeres is sign-blind — though preserving it costs nothing; the
+  original values' positivity enters Proof A only at G6.
 
 > **(A1, continued)** "… with no monotonic subsequence of size
 > $\lceil N x_i \rceil + 1$."
@@ -102,8 +104,8 @@ The entire informal proof is four sentences. Each is quoted, then billed.
   drag in real analysis to finish a combinatorial theorem.
 - **G6 (silent positivity and sign).** $S \ge 0$ (needed for
   $S^2 \ge 1/n \Rightarrow S \ge 1/\sqrt n$) holds because monotone subsequences of
-  positive values have positive sums — positivity is used here and in G1(iii), yet
-  the word "positive" never appears in the proof.
+  positive values have positive sums — this is the *only* use of positivity in
+  Proof A, yet the word "positive" never appears in the proof.
 - **G7 (existence of a maximizer).** The conclusion is "there is a monotone
   subsequence with sum ≥ 1/k", but the argument bounds the *supremum* $S$. One
   needs that the max is attained — finitely many subsequences, nonempty family —
@@ -122,18 +124,26 @@ The entire informal proof is four sentences. Each is quoted, then billed.
   the `incSequencesTo`/`maxIncSequencesTo` scaffolding of Mathlib's Archive proof
   of Erdős–Szekeres: **replace `Finset.card` by `∑ x` and Seidenberg's proof
   becomes Aristotle's.** Recognizing this is what makes the formalization short.
-- **B2 ("these are disjoint" — a case analysis with an extension lemma).** For
-  $i \ne j$ (say $i < j$ positionally): if $x_i < x_j$, any increasing subsequence
-  ending at $i$ extends by $j$, so $S_j \ge S_i + x_j$, hence the *first*
-  coordinates' intervals $(S_i - x_i, S_i]$ and $(S_j - x_j, S_j]$ are disjoint;
-  if $x_j < x_i$, symmetrically for $T$. Formal cost: the one-line "extends by $j$"
-  is an `insert` into a `Finset` with proofs that `IsGreatest` and `StrictMonoOn`
-  survive the insertion. Note the dichotomy ($x_i < x_j$ or $x_j < x_i$) is **the
+- **B2a ("these are disjoint", part one — an unstated extension lemma).** For
+  $i \ne j$ (say $i < j$ positionally) with $x_i < x_j$: any increasing
+  subsequence ending at $i$ extends by $j$, so $S_j \ge S_i + x_j$. Formal cost:
+  the one-line "extends by $j$" is an `insert` into a `Finset` with proofs that
+  `IsGreatest` and `StrictMonoOn` survive the insertion — in the development this
+  is its own lemma (`insert_mem_incSetsTo`), feeding the growth inequality
+  (`incSumTo_add_le`).
+- **B2b ("these are disjoint", part two — the dichotomy and the disjointness
+  inference).** The growth inequality separates the *first* coordinates' intervals
+  $(S_i - x_i, S_i]$ and $(S_j - x_j, S_j]$; if instead $x_j < x_i$, the
+  symmetric argument for $T$ separates the second coordinates
+  (`square_disjoint_of_lt`). The dichotomy ($x_i < x_j$ or $x_j < x_i$) is **the
   only place Proof B uses distinctness** — and had the proof been phrased with
-  *weakly* monotone subsequences, it would need no distinctness at all (the
-  dichotomy $x_i \le x_j$ or $x_j \le x_i$ is unconditional). The informal text
-  inherits the hypothesis from the problem statement without noticing the proof
-  barely needs it.
+  *weakly* monotone subsequences, it would need no distinctness at all: the weak
+  dichotomy $x_i \le x_j \lor x_j \le x_i$ is unconditional, and the weak
+  extension lemma still pushes $S_j - x_j \ge S_i$, so the intervals stay
+  disjoint even under ties. (For the *strict*-monotone rendering used here the
+  hypothesis is genuinely needed: with $n = 2$ equal values of weight $1$ the ℓ²
+  bound fails.) The informal text inherits distinctness from the problem
+  statement without noticing the proof barely needs it.
 - **B3 (containment + nondegeneracy).** $S_i - x_i \ge 0$ because the singleton is
   a candidate; the square is *nonempty* because $x_i > 0$ — the only use of
   positivity, again unannounced.
@@ -171,7 +181,7 @@ here; it is recorded in §6 as the sharpest library gap this analysis surfaced,
 and is the natural standalone follow-up (PR-able to Mathlib independently of
 this development). Proof B is finite, construction-free, and its only expensive step
 (B4) is expensive in a *library-supported* way. Proof A is the better story but the
-worse engineering: three of its four sentences each conceal a lemma, and one
+worse engineering: three of its four steps each conceal a lemma, and one
 conceals a missing library file.
 
 For calibration: Aristotle's machine-generated Lean proof of the same
@@ -200,6 +210,10 @@ kind of sentence they are reading.
 2. **Erdős–Szekeres lives in `Archive/`**, not Mathlib proper, with `private`
    scaffolding (`incSequencesTo` etc.) that cannot be reused downstream even
    though Proof B is its weighted shadow (B1). The weighted generalization
-   formalized here subsumes the unweighted statement (set $x \equiv 1$).
+   formalized here subsumes the *symmetric form* of the unweighted statement
+   (set the weights $w \equiv 1$, keeping the order map injective); the
+   asymmetric $r$/$s$ form would need the unexported product inequality
+   $(\max_i S_i)(\max_i T_i) \ge \sum_i w_i^2$ rather than its symmetrized
+   $S^2$ corollary.
 3. **No "disjoint boxes have summable area" convenience lemma** (B4): the fact is
    assembled from product-measure primitives each time it is needed.

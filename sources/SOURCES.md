@@ -14,14 +14,14 @@ All quotations below are verbatim from public sources, retrieved 2026-06-10.
 
 > "the elegant question is the following. Let x₁, x₂, …, x_{k²} be k² distinct positive reals with sum 1. Then one can always find a monotonic subsequence with sum at least 1/k."
 
-This is the statement everything here formalizes. It was posed as an open question in J. M. Steele's survey on Erdős–Szekeres (1995), first proved by Tidor–Wang–Yang (2016), and resolved publicly in December 2025 as described below.
+This is the statement everything here formalizes. It was posed as an open question in J. M. Steele's survey on Erdős–Szekeres (*Variations on the monotone subsequence theme of Erdős and Szekeres*, Discrete Probability and Algorithms, IMA Vol. 72, Springer, 1995, pp. 111–131; Zbl 0832.60012), first proved by Tidor–Wang–Yang (2016), and resolved publicly in December 2025 as described below. (Tao's post calls the Steele reference a "1980 article" in an edit, but the zbMATH record it links, 0832.60012, is the 1995 survey.)
 
 ## Timeline of the December 2025 resolution
 
 1. **Dec 7, 2025** — Boris Alexeev, sweeping Erdős problems with the AI prover **Aristotle** (Harmonic), obtains an autonomous Lean proof via a rectangle-packing reformulation.
    File (3,658 lines, machine-generated): https://github.com/plby/lean-proofs/blob/9f90812fc849fa4b6eb6f6c93ed3aa74a0856321/src/v4.24.0/ErdosProblems/Erdos1026.lean
    (No license is declared on that repository, so the file is not vendored here; a local reference copy is kept untracked under `sources/`.)
-2. **Dec 8, 2025, 00:23** — ~1 hour later, **Koishi Chan** posts a four-sentence elementary proof on the forum (quoted in full below).
+2. **Dec 8, 2025, 00:23** — ~1 hour later, **Koishi Chan** posts a six-sentence elementary proof on the forum (quoted in full below).
 3. **Dec 8, 2025** — llllvvuu explains Aristotle's argument informally (quoted in full below); Alexeev locates the prior human proof in Tidor–Wang–Yang.
 
 ## Proof A — Chan's blow-up argument (verbatim, KoishiChan, 00:23 on 08 Dec 2025)
@@ -54,6 +54,9 @@ Per Alexeev's follow-up comment, this argument appears in Section 3 of Tidor–W
   `Archive/Wiedijk100Theorems/AscendingDescendingSequences.lean` (author: Bhavik Mehta), main statement:
   `theorem Theorems100.erdos_szekeres {r s : ℕ} {f : α → β} (hn : r * s < Fintype.card α) (hf : Injective f) : (∃ t : Finset α, r < #t ∧ StrictMonoOn f t) ∨ ∃ t : Finset α, s < #t ∧ StrictAntiOn f t`
 - Mathlib has **no weighted Erdős–Szekeres** and **no tightness construction** (a sequence of r·s distinct values with no increasing subsequence longer than r nor decreasing longer than s).
+- Mathlib *proper* contains only the **infinitary** Erdős–Szekeres
+  (`exists_increasing_or_nonincreasing_subseq`, `Mathlib/Order/OrderIsoNat.lean`);
+  the finite quantitative theorem is Archive-only, as above.
 
 ## Raw captures (untracked)
 

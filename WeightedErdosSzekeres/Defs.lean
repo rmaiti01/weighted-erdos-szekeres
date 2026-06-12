@@ -58,13 +58,6 @@ qualifies vacuously. -/
 def IsMonoSubseq (v : Fin n → β) (t : Finset (Fin n)) : Prop :=
   StrictMonoOn v ↑t ∨ StrictAntiOn v ↑t
 
-/-- Strict antitonicity on `s` is strict monotonicity into the dual order;
-this is the bridge along which every decreasing-side fact is obtained from its
-increasing-side sibling. -/
-lemma strictAntiOn_iff_strictMonoOn_toDual {v : Fin n → β} {s : Set (Fin n)} :
-    StrictAntiOn v s ↔ StrictMonoOn (⇑toDual ∘ v) s :=
-  Iff.rfl
-
 /-- The (finite, nonempty) family of monotone index sets. -/
 noncomputable def monoSubseqs (v : Fin n → β) : Finset (Finset (Fin n)) :=
   open Classical in {t : Finset (Fin n) | IsMonoSubseq v t}
@@ -196,8 +189,8 @@ lemma incSumTo_add_le {v : Fin n → β} (w : Fin n → ℝ) {i j : Fin n}
 /-- Generic comparison: if every member of `incSetsTo u i` is a monotone
 subsequence for `v`, then `incSumTo u w i ≤ maxMonoSum v w`. Instantiated
 twice below (`u = v` and `u = ⇑toDual ∘ v`). -/
-lemma incSumTo_le_maxMonoSum_of {u : Fin n → β} {γ : Type*} [LinearOrder γ]
-    {v : Fin n → γ} (w : Fin n → ℝ) {i : Fin n}
+lemma incSumTo_le_maxMonoSum_of_forall_isMonoSubseq {u : Fin n → β} {γ : Type*}
+    [LinearOrder γ] {v : Fin n → γ} (w : Fin n → ℝ) {i : Fin n}
     (h : ∀ t ∈ incSetsTo u i, IsMonoSubseq v t) :
     incSumTo u w i ≤ maxMonoSum v w := by
   obtain ⟨t, ht, hsum⟩ := exists_incSumTo u w i
@@ -207,15 +200,17 @@ lemma incSumTo_le_maxMonoSum_of {u : Fin n → β} {γ : Type*} [LinearOrder γ]
 weight overall. -/
 lemma incSumTo_le_maxMonoSum (v : Fin n → β) (w : Fin n → ℝ) (i : Fin n) :
     incSumTo v w i ≤ maxMonoSum v w :=
-  incSumTo_le_maxMonoSum_of w fun _ ht => Or.inl (mem_incSetsTo.1 ht).2
+  incSumTo_le_maxMonoSum_of_forall_isMonoSubseq w fun _ ht =>
+    Or.inl (mem_incSetsTo.1 ht).2
 
 /-- The best *decreasing* weight ending at `i` — spelled, as everywhere in
 this development, as the increasing weight for `⇑toDual ∘ v` (there is no
 separate `decSumTo` definition) — is at most the best monotone weight for
-`v` itself. -/
-lemma decSumTo_le_maxMonoSum (v : Fin n → β) (w : Fin n → ℝ) (i : Fin n) :
+`v` itself. The decreasing-to-increasing bridge is Mathlib's
+`strictMonoOn_toDual_comp_iff` (an `Iff.rfl`). -/
+lemma incSumTo_toDual_comp_le_maxMonoSum (v : Fin n → β) (w : Fin n → ℝ) (i : Fin n) :
     incSumTo (⇑toDual ∘ v) w i ≤ maxMonoSum v w :=
-  incSumTo_le_maxMonoSum_of w fun _ ht =>
-    Or.inr (strictAntiOn_iff_strictMonoOn_toDual.2 (mem_incSetsTo.1 ht).2)
+  incSumTo_le_maxMonoSum_of_forall_isMonoSubseq w fun _ ht =>
+    Or.inr (strictMonoOn_toDual_comp_iff.1 (mem_incSetsTo.1 ht).2)
 
 end WeightedES

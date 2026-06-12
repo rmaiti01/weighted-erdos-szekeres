@@ -85,6 +85,6 @@ lemma square_subset (v : Fin n → β) (w : Fin n → ℝ) (i : Fin n) :
   · linarith [self_le_incSumTo v w i]
   · exact incSumTo_le_maxMonoSum v w i
   · linarith [self_le_incSumTo (⇑toDual ∘ v) w i]
-  · exact decSumTo_le_maxMonoSum v w i
+  · exact incSumTo_toDual_comp_le_maxMonoSum v w i
 
 end WeightedES
