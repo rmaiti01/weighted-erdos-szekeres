@@ -7,15 +7,18 @@ is open.**
 
 ## Blocking issues
 
-All blocking issues found during review are **resolved**; two MANUAL items
-remain for human eyes before flipping the repo public:
+All blocking issues found during review are **resolved**; one MANUAL item
+remains for human eyes before flipping the repo public:
 
 1. **MANUAL:** `erdosproblems.com/1026` and the forum-thread URL return
    HTTP 403 to non-browser fetchers — verify both load in a browser and that
    the problem-page status line still reads as quoted in `sources/SOURCES.md`.
-2. **MANUAL:** confirm the CI run on the final commit is green on GitHub
-   (the workflow was reviewed and the gate greps verified locally, but the
-   badge is only as good as the last run).
+
+(A second MANUAL item — CI green on the final commit — was closed during the
+review: the GitHub Actions run on the final commit completed `success`. The
+run history itself corroborates the review: the pre-review code failed CI,
+the intermediate commit failed on the sorry-gate-vs-docstring issue found by
+the audit, and the post-review commits pass.)
 
 Resolved during review (details in the phases below): the uploaded code did
 not compile cold (four Lean errors, 0.2); unlicensed full-text source dumps
