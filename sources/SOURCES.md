@@ -1,70 +1,36 @@
-# Source dossier — Erdős Problem #1026
+# Mathematical sources
 
-All quotations below are verbatim from public sources, retrieved 2026-06-10.
+This repository formalises Cambie's normalised finite formulation of Erdős #1026. The argument is existing mathematics; the Lean implementation is a separate development. Sources below were identified in the original June 2026 review.
 
-## The problem
+## Problem and discussion
 
-**Erdős [Er71, p.107]:** *"Let x₁,…,xₙ be a sequence of distinct real numbers. Determine max(Σ x_{i_r}), where the maximum is taken over all monotonic subsequences."*
+- [Erdős problem #1026](https://www.erdosproblems.com/1026): the problem page and references.
+- [Forum thread](https://www.erdosproblems.com/forum/thread/1026): Stijn Cambie's formulation, Koishi Chan's blow-up proof, llllvvuu's explanation of the square-packing argument, and the counterexample to the length-$k$ strengthening.
+- [Terence Tao, The story of Erdős problem #1026](https://terrytao.wordpress.com/2025/12/08/the-story-of-erdos-problem-126/), 8 December 2025: an account of the automated proof, the subsequent discussion, and the earlier literature. The URL's `126` slug is the published URL.
 
-- Problem page: https://www.erdosproblems.com/1026 (status: SOLVED (LEAN); "Formalised statement? No" as of 2026-06-10)
-- Forum thread (primary source for both proofs below): https://www.erdosproblems.com/forum/thread/1026
-- T. Tao, *The story of Erdős problem #1026* (Dec 8, 2025): https://terrytao.wordpress.com/2025/12/08/the-story-of-erdos-problem-126/
+Cambie's formulation asks whether $k^2$ distinct positive reals summing to $1$ have a monotone subsequence of sum at least $1/k$. That is the statement exported as `WeightedES.erdos_1026`.
 
-**The finite core (Stijn Cambie, forum comment, 08:08 on 13 Sep 2025):**
+## Proof attribution
 
-> "the elegant question is the following. Let x₁, x₂, …, x_{k²} be k² distinct positive reals with sum 1. Then one can always find a monotonic subsequence with sum at least 1/k."
+- **Square packing:** llllvvuu's forum explanation of Aristotle's proof, using Seidenberg-style maxima for increasing and decreasing subsequences ending at each index. This is the argument implemented here.
+- **Blow-up argument:** Koishi Chan's forum post. It replaces each value with a small extremal cluster and applies the unweighted theorem before passing to a limit. It is analysed in `INFORMAL.md` but not implemented.
+- **Earlier literature:** Jonathan Tidor, Victor Wang, and Ben Yang, [1-color-avoiding paths, special tournaments, and incidence geometry](https://arxiv.org/abs/1608.04153), 2016, Section 3. The source discussion connects the blow-up argument to this paper and its attribution to A. Z. Wagner.
+- **Survey:** J. M. Steele, Variations on the monotone subsequence theme of Erdős and Szekeres, in Discrete Probability and Algorithms, IMA Vol. 72, Springer, 1995, pp. 111-131.
 
-This is the statement everything here formalizes. It was posed as an open question in J. M. Steele's survey on Erdős–Szekeres (*Variations on the monotone subsequence theme of Erdős and Szekeres*, Discrete Probability and Algorithms, IMA Vol. 72, Springer, 1995, pp. 111–131; Zbl 0832.60012), first proved by Tidor–Wang–Yang (2016), and resolved publicly in December 2025 as described below. (Tao's post calls the Steele reference a "1980 article" in an edit, but the zbMATH record it links, 0832.60012, is the 1995 survey.)
+The normalised result predates the December 2025 forum discussion. This repository makes no claim to have discovered it.
 
-## Timeline of the December 2025 resolution
+## Other Lean development
 
-1. **Dec 7, 2025** — Boris Alexeev, sweeping Erdős problems with the AI prover **Aristotle** (Harmonic), obtains an autonomous Lean proof via a rectangle-packing reformulation.
-   File (3,658 lines, machine-generated): https://github.com/plby/lean-proofs/blob/9f90812fc849fa4b6eb6f6c93ed3aa74a0856321/src/v4.24.0/ErdosProblems/Erdos1026.lean
-   (No license is declared on that repository, so the file is not vendored here; a local reference copy is kept untracked under `sources/`.)
-2. **Dec 8, 2025, 00:23** — ~1 hour later, **Koishi Chan** posts a six-sentence elementary proof on the forum (quoted in full below).
-3. **Dec 8, 2025** — llllvvuu explains Aristotle's argument informally (quoted in full below); Alexeev locates the prior human proof in Tidor–Wang–Yang.
+[Aristotle's generated proof](https://github.com/plby/lean-proofs/blob/9f90812fc849fa4b6eb6f6c93ed3aa74a0856321/src/v4.24.0/ErdosProblems/Erdos1026.lean) is linked at a fixed commit. It includes exact-constant results beyond this repository's normalised theorem. Total file sizes therefore do not give a like-for-like measure of proof compression.
 
-## Proof A — Chan's blow-up argument (verbatim, KoishiChan, 00:23 on 08 Dec 2025)
+## Mathlib context
 
-> "Genuinely impressed!
-> In retrospect, I think there is another solution that uses a "blowup" argument and Erdos-Szekeres. Set n = k². Take large N, and replace each xᵢ with ⌊N²xᵢ²⌋ pertubations of xᵢ, with no monotonic subsequence of size ⌈Nxᵢ⌉ + 1. As N → ∞, this new sequence's largest monotonic subsequence has size NS + O(1), where S is the largest sum of the monotonic subsequences of the original sequence. By Erdos-Szekeres, we have
-> (NS + O(1))² ≥ Σᵢ₌₁ⁿ ⌊N²xᵢ²⌋.
-> So taking N → ∞ we obtain
-> S² ≥ Σᵢ₌₁ⁿ xᵢ².
-> Now Cauchy-Schwarz gives S ≥ n^(−1/2) = k^(−1)."
+The project pins Mathlib to `v4.29.0`, commit `8a178386ffc0f5fef0b77738bb5449d50efeea95`.
 
-Per Alexeev's follow-up comment, this argument appears in Section 3 of Tidor–Wang–Yang, *1-color-avoiding paths, special tournaments, and incidence geometry* (2016), https://arxiv.org/abs/1608.04153, there credited as implicit in A. Z. Wagner, *Large subgraphs in rainbow-triangle free colorings*.
+- [`Archive/Wiedijk100Theorems/AscendingDescendingSequences.lean`](https://github.com/leanprover-community/mathlib4/blob/8a178386ffc0f5fef0b77738bb5449d50efeea95/Archive/Wiedijk100Theorems/AscendingDescendingSequences.lean), by Bhavik Mehta: the finite quantitative Erdős-Szekeres theorem and private endpoint scaffolding.
+- `Mathlib/Order/OrderIsoNat.lean`: an infinitary subsequence result.
+- The implemented area argument uses the existing product-volume, interval-volume, finite-additivity, and measure-monotonicity APIs. The original review did not identify a reusable finite tightness construction for the alternative blow-up proof.
 
-## Proof B — Aristotle's rectangle-packing argument (verbatim, llllvvuu, 17:40 on 08 Dec 2025)
+## Redistribution
 
-> "Aristotle's square-packing argument in a bit more detail:
-> We follow the approach of Seidenberg (1959) in proving Erdős-Szekeres. Let Sᵢ be the maximal sum over all increasing subsequences ending in xᵢ, and Tᵢ be the maximal sum over all decreasing subsequences ending in xᵢ. Now consider the squares (Sᵢ − xᵢ, Tᵢ − xᵢ), (Sᵢ, Tᵢ). These are disjoint and contained in the rectangle (0, 0), (maxᵢ Sᵢ, maxᵢ Tᵢ). Hence, (maxᵢ Sᵢ)(maxᵢ Tᵢ) ≥ Σᵢ xᵢ² ≥ 1/k² as desired."
-
-## The false strengthening (sidebar material)
-
-**Vjeko Kovač (10:32 on 13 Sep 2025):** *"An even bolder conjecture would be that one can always find a monotonic subsequence of length k with sum at least 1/k."*
-
-**Refuted by Cambie (13:16 on 13 Sep 2025):**
-
-> "Let n = k², where k ≥ 3, and let the sequence be the normalised version of k·C(n,2), 1, 2, …, n−1 (i.e., all terms divided by (k+1)·C(n,2)). Now no subset has sum above 1/k if the first term is not there, but every monotonic subsequence containing the first element contains at most two elements (and thus not k)."
-
-## Lean/Mathlib context
-
-- Mathlib's Erdős–Szekeres lives in the **Archive**, not Mathlib proper:
-  `Archive/Wiedijk100Theorems/AscendingDescendingSequences.lean` (author: Bhavik Mehta), main statement:
-  `theorem Theorems100.erdos_szekeres {r s : ℕ} {f : α → β} (hn : r * s < Fintype.card α) (hf : Injective f) : (∃ t : Finset α, r < #t ∧ StrictMonoOn f t) ∨ ∃ t : Finset α, s < #t ∧ StrictAntiOn f t`
-- Mathlib has **no weighted Erdős–Szekeres** and **no tightness construction** (a sequence of r·s distinct values with no increasing subsequence longer than r nor decreasing longer than s).
-- Mathlib *proper* contains only the **infinitary** Erdős–Szekeres
-  (`exists_increasing_or_nonincreasing_subseq`, `Mathlib/Order/OrderIsoNat.lean`);
-  the finite quantitative theorem is Archive-only, as above.
-
-## Raw captures (untracked)
-
-Full-text captures are kept as **untracked local working copies only** — none
-of the three carries a license permitting redistribution, so none is vendored
-in this repository (see `.gitignore`). What the repo distributes is this
-dossier: short, attributed verbatim excerpts plus the links above.
-
-- `forum_thread_raw.txt` — text dump of the forum thread (retrieved 2026-06-10)
-- `tao_post_raw.txt` — text dump of Tao's blog post (retrieved 2026-06-10)
-- `aristotle_erdos1026.lean` — local copy of Aristotle's proof (pinned URL above)
+The repository links to third-party articles, forum posts, and generated code. It does not distribute full-text captures of those sources. The Apache 2.0 licence applies to the original code in this repository.
