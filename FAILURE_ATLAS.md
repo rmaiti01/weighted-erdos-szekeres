@@ -1,79 +1,61 @@
-# Failure atlas
+# Tactic and build failures
 
-A log of every place automation or the library fell short while formalizing
-this development, with root causes. Each entry records: the goal, what was
-tried, why it failed, and what fixed it. Entries marked **[benchmark]** are
-extracted as standalone files under `Benchmarks/`.
+This note records two tactic/elaboration failures encountered in the formalisation and one local filesystem issue. The tactic observations concern Lean and Mathlib `v4.29.0`. They do not establish failure rates for an automated prover.
 
-Format note: these are not complaints — they are the data a verification
-pipeline needs. A tactic that fails *for an articulable reason* is a missing
-lemma, a normal-form mismatch, or an API gap; naming which is the point.
+## A1. Empty-set monotonicity
 
----
+**Goal:**
 
-## A1. `simp` cannot see that `StrictMonoOn v ∅` is vacuous through a `Finset` coercion **[benchmark]**
+```lean
+StrictMonoOn v ↑(∅ : Finset (Fin n))
+```
 
-- **Goal:** `StrictMonoOn v ↑(∅ : Finset (Fin n))`
-- **Tried:** `simp` — failed, leaving the goal untouched.
-- **Root cause:** the goal mixes two normal forms. `simp` knows
-  `Finset.coe_empty : ↑(∅ : Finset α) = (∅ : Set α)` and there is a vacuity
-  lemma for `Set` (`Set.Subsingleton.strictMonoOn`), but no `@[simp]` lemma
-  rewrites `StrictMonoOn f ∅` to `True`, so after normalizing the coercion the
-  simp set has nowhere to go. A `strictMonoOn_empty` simp lemma in Mathlib
-  would close this class of goals.
-- **Fix:** unfold the binder by hand: `fun a ha => by simp at ha`
-  (membership in `∅` is the contradiction `simp` *can* see).
+**Attempt:** `simp`.
 
-## A2. Higher-order unification failure: `Finset.le_max'` in term mode **[benchmark]**
+**Observed result:** the coercion is normalised to the empty `Set`, but the monotonicity goal remains. The simplifier does not close it with the available simp lemmas in this context.
 
-- **Goal:** `∑ i ∈ t, w i ≤ maxMonoSum v w` where
-  `maxMonoSum v w := ((monoSubseqs v).image fun t => ∑ i ∈ t, w i).max' _`
-- **Tried:** term-mode
-  `le_max' _ _ (mem_image_of_mem _ (mem_monoSubseqs.2 ht))` — type mismatch:
-  the elaborator reports `?f t ≤ (image ?f _).max' ⋯` does not match the
-  goal.
-- **Root cause:** elaborating `le_max'` requires solving
-  `(image ?f s).max' ⋯ =?= maxMonoSum v w`, which means unfolding a `def`
-  *and* solving for the function `?f` under an `image` — a higher-order
-  unification problem the elaborator (correctly) refuses to guess.
-- **Fix (two stages — the first recorded fix was incomplete):**
-  `unfold maxMonoSum` first, so the goal-side unification is syntactic. On a
-  cold `lake build` that is still not enough: with `mem_image_of_mem _ ht`
-  the image *function* is a metavariable, so the elaborator parks
-  `DecidableEq ?m` (the instance `Finset.image` needs) and reports
-  "typeclass instance problem is stuck". The complete fix supplies the
-  function explicitly: `mem_image_of_mem (fun t => ∑ i ∈ t, w i) ht`.
-  Caught during pre-publication review when the first verified-clean cold
-  build was run — the original in-editor session had accepted the
-  underdetermined form. General lesson: definitions wrapping
-  `Finset.max'`/`image` should ship their own `le_*` API lemma immediately,
-  precisely so no caller ever faces this unification problem — which is what
-  `Defs.lean` does.
+**Fix:** introduce the membership hypothesis, then simplify that contradiction:
 
----
+```lean
+fun a ha => by simp at ha
+```
 
-## E1. Lake/Lean/git block indefinitely on iCloud-evicted (`dataless`) trees **[environment]**
+This term is used in `empty_mem_monoSubseqs`. The extracted exercise is [A1_StrictMonoOnEmptyCoe.lean](Benchmarks/A1_StrictMonoOnEmptyCoe.lean).
 
-- **Symptom:** `lake build` sat at 0% CPU for 15+ minutes with no `lean`
-  workers; independently, `git status`/`git diff HEAD` inside
-  `.lake/packages/mathlib` hung the same way. An earlier full build appeared
-  to "hang ~50 minutes in elaboration".
-- **Diagnosis:** `sample` showed Lake parked in `Lake_PackageEntry_materialize`
-  waiting on a spawned `git diff HEAD`; `lsof` showed that git blocked reading
-  a workflow file; `ls -lO` showed the *entire* Mathlib package carries the
-  macOS `dataless` flag. The repository lives under `~/Desktop`, which iCloud
-  "Desktop & Documents" sync had evicted wholesale. Any `read`/`stat` of an
-  evicted file traps into the file provider and blocks until iCloud
-  rematerializes it — for Mathlib that is hundreds of thousands of files, so
-  builds and whole-tree git operations stall at 0% CPU with no error message.
-- **Root cause:** not Lean, Lake, or Mathlib — the build directory is inside
-  an iCloud-synced path. The failure mode is invisible (kernel-level block,
-  no timeout, no log line), which is what makes it atlas-worthy: it
-  masquerades as "slow elaboration".
-- **Fix:** keep Lean checkouts outside iCloud-synced paths (or
-  `brctl download <dir>` / `brctl evict`-exempt them). For this review the
-  canonical verification build was done from a fresh clone under `/tmp`.
+## A2. Maximum through an image definition
 
----
+**Goal:**
 
-*(in progress — entries are appended as the formalization proceeds)*
+```lean
+∑ i ∈ t, w i ≤ maxMonoSum v w
+```
+
+Here `maxMonoSum` wraps `Finset.max'` over an image of weighted sums.
+
+**Attempt:**
+
+```lean
+le_max' _ _ (mem_image_of_mem _ (mem_monoSubseqs.2 ht))
+```
+
+**Observed result:** the inferred image function remains underdetermined, and the term does not match the goal. Unfolding `maxMonoSum` alone left a stuck `DecidableEq` instance in the recorded clean build.
+
+**Fix:** unfold the wrapper and provide the image function explicitly:
+
+```lean
+unfold maxMonoSum
+exact le_max' _ _ <|
+  mem_image_of_mem (fun t => ∑ i ∈ t, w i) <| mem_monoSubseqs.2 ht
+```
+
+This is the implementation of `sum_le_maxMonoSum`; `le_incSumTo` uses the same pattern. The extracted exercise is [A2_LeMaxThroughDef.lean](Benchmarks/A2_LeMaxThroughDef.lean).
+
+## E1. iCloud-evicted checkout
+
+The original local build stalled with no Lean workers. A process sample showed Lake waiting on `git diff`; file inspection showed that the Mathlib checkout carried macOS `dataless` flags. Reads were waiting for iCloud to restore evicted files.
+
+The verification build was moved to a fresh checkout outside the synced directory. This was a filesystem issue, not evidence of slow theorem elaboration.
+
+## Benchmark status
+
+The two exercises contain intentional `sorry` placeholders and are excluded from the default build. `lake build Benchmarks` checks that they elaborate against the pinned toolchain; it does not prove their targets or reproduce the failed attempts automatically.
